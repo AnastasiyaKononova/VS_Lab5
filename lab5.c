@@ -92,9 +92,9 @@ void cleanup_module(void) {
     remove_proc_entry("result", NULL);
 }
 
-static ssize_t proc_read(struct file *filp,    /* see include/linux/fs.h   */
-                         char *buffer,    /* buffer to fill with data */
-                         size_t length,    /* length of the buffer     */
+static ssize_t proc_read(struct file *filp,    
+                         char *buffer,    
+                         size_t length,   
                          loff_t *offset) {
     ssize_t cnt;
     ssize_t ret;
