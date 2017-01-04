@@ -6,31 +6,30 @@
 #include <linux/vmalloc.h>
 #include <linux/string.h>
 
+#define BUF 100
+
 MODULE_LICENSE("GPL");
 
-int init_module(void);
+static ssize_t first_dev_wr(struct file *filp, const char *buffer, size_t length, loff_t *offset);
 
-void cleanup_module(void);
+static ssize_t second_dev_wr(struct file *filp, const char *buffer, size_t length, loff_t *offset);
 
-static ssize_t dev_first_write(struct file *filp, const char *buffer, size_t length, loff_t *offset);
-
-static ssize_t dev_second_write(struct file *filp, const char *buffer, size_t length, loff_t *offset);
-
-static ssize_t dev_operator_write(struct file *filp, const char *buffer, size_t length, loff_t *offset);
+static ssize_t operator_dev_wr(struct file *filp, const char *buffer, size_t length, loff_t *offset);
 
 static ssize_t proc_read(struct file *filp, char *buffer, size_t length, loff_t *offset);
 
+int init_module(void);
 
-#define BUF_LEN 80
+void clean_module(void);
 
 static int major_operand_1;
 static int major_operand_2;
 static int major_operator;
 
-static char result[BUF_LEN];
-static char first[BUF_LEN];
-static char second[BUF_LEN];
-static char operand[BUF_LEN];
+static char result[BUF];
+static char first[BUF];
+static char second[BUF];
+static char operand[BUF];
 
 
 static struct file_operations fops = {
@@ -40,17 +39,17 @@ static struct file_operations fops = {
 
 static struct file_operations dev_first_fops = {
         .owner = THIS_MODULE,
-        .write = dev_first_write,
+        .write = first_dev_wr,
 };
 
 static struct file_operations dev_second_fops = {
         .owner = THIS_MODULE,
-        .write = dev_second_write
+        .write = second_dev_wr
 };
 
 static struct file_operations dev_operator_fops = {
         .owner = THIS_MODULE,
-        .write = dev_operator_write
+        .write = operator_dev_wr
 };
 
 static struct proc_dir_entry *proc_result;
@@ -85,7 +84,7 @@ int init_module(void) {
     return 0;
 }
 
-void cleanup_module(void) {
+void clean_module(void) {
     unregister_chrdev(major_operand_1, "first");
     unregister_chrdev(major_operand_2, "second");
     unregister_chrdev(major_operator, "operator");
@@ -131,21 +130,21 @@ static ssize_t proc_read(struct file *filp,
         return cnt;
 }
 
-static ssize_t dev_first_write(struct file *filp, const char *buff, size_t len, loff_t *off) {
+static ssize_t first_dev_wr(struct file *filp, const char *buff, size_t len, loff_t *off) {
     if (copy_from_user(first, buff, len)) {
         return -EFAULT;
     }
     return len;
 }
 
-static ssize_t dev_second_write(struct file *filp, const char *buff, size_t len, loff_t *off) {
+static ssize_t second_dev_wr(struct file *filp, const char *buff, size_t len, loff_t *off) {
     if (copy_from_user(second, buff, len)) {
         return -EFAULT;
     }
     return len;
 }
 
-static ssize_t dev_operator_write(struct file *filp, const char *buff, size_t len, loff_t *off) {
+static ssize_t operator_dev_wr(struct file *filp, const char *buff, size_t len, loff_t *off) {
     if (copy_from_user(operand, buff, len)) {
         return -EFAULT;
     }
